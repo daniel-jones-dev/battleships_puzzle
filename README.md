@@ -11,11 +11,11 @@ General interests/directions of this project are:
 - what are some examples of puzzles requiring very complicated logic, and can
   these rules be explained?
 - how does varying the puzzle affect the above? For example, the grid size
-  and shape, the number and size of ships in the armada.
+  and shape, the number and size of ships in the fleet.
 
 ## Rules of the puzzle ##
-An armada of ships of various sizes is hidden in a square grid of 10x10 squares.
-The armada includes one battleship four squares long, two cruises three
+A fleet of ships of various sizes is hidden in a square grid of 10x10 squares.
+The fleet includes one battleship four squares long, two cruises three
 squares long, three destroyers two squares long, and four submarines one
 square  in size. Each ship occupies a number of contiguous squares on the
 grid, arranged horizontally or vertically. The ships are placed so that no
@@ -36,7 +36,7 @@ squares occupied by ship parts in that row or column, respectively.
 
 ## Terminology ##
 Some terms used by this project:
-- armada - all ships in a puzzle
+- fleet - all ships in a puzzle
 - N-ship - a ship of length N, e.g. "the 4-ship"
 - cell states:
     * water - a cell with no ship segment in it
