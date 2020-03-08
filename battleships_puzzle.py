@@ -1,45 +1,30 @@
-from puzzle import *
+import puzzle
+import solver
+import example_puzzles
 
-# Very simple example -- a 4x3 grid with a 3-ship and two 1-ships
-# simple_ruleset = Ruleset(4, 3, [1, 1, 3])
 
-# The solution shall be:
-# <=>.
-# ....
-# O.O.
-# column_sums = [2, 1, 2, 0]
-# row_sums = [3, 0, 2]
-# simple_puzzle = Puzzle(simple_ruleset, column_sums=column_sums,
-#                        row_sums=row_sums)
-# solved_puzzle = Puzzle(simple_ruleset, column_sums=column_sums,
-#                        row_sums=row_sums)
-# solved_puzzle.grid[0][0] = CellState.OccupiedEndLeft
-# solved_puzzle.grid[0][1] = CellState.OccupiedMidLR
-# solved_puzzle.grid[0][2] = CellState.OccupiedEndRight
-# solved_puzzle.grid[0][3] = CellState.Water
-# solved_puzzle.grid[1][0] = CellState.Water
-# solved_puzzle.grid[1][1] = CellState.Water
-# solved_puzzle.grid[1][2] = CellState.Water
-# solved_puzzle.grid[1][3] = CellState.Water
-# solved_puzzle.grid[2][0] = CellState.OccupiedWhole
-# solved_puzzle.grid[2][1] = CellState.Water
-# solved_puzzle.grid[2][2] = CellState.OccupiedWhole
-# solved_puzzle.grid[2][3] = CellState.Water
-#
-# print(simple_puzzle)
-# print(solved_puzzle)
-# assert (simple_puzzle.is_valid())
-# assert (solved_puzzle.is_valid())
-# assert (not simple_puzzle.is_solved())
-# assert (solved_puzzle.is_solved())
-#
+def solve_puzzle(puzzle_to_solve):
+    simple_solver = solver.Solver(puzzle_to_solve)
 
-# Very simple example -- a 3x3 grid with a 3-ship and two 1-ships
+    step_count = 1
 
-count = 0
+    while True:
+        print(puzzle_to_solve)
+        if puzzle_to_solve.is_solved():
+            print("Puzzle is solved")
+            break
 
-for solution in generate_solved_puzzles(3, 3, [1, 1, 3]):
-    print(solution)
-    count += 1
+        step = simple_solver.solve_step()
+        print("Step {}:".format(step_count))
+        print(step)
+        step_count += 1
+        if len(step.solved_cells) == 0:
+            print("Could not find any cells to solve")
+            break
+        else:
+            simple_solver.do_step(step)
 
-print("count: {}".format(count))
+
+p = example_puzzles.get_example_puzzle(3)
+
+solve_puzzle(p)

@@ -52,50 +52,6 @@ class CellState(Enum):
         return None
 
 
-def get_neighbour_cells(x: int, y: int, num_cols: int, num_rows: int) \
-        -> Sequence[Tuple[int, int]]:
-    """Returns the (up to) 9 cells around and including the given cell as
-    tuples of (x, y)"""
-    minx = max(x - 1, 0)
-    maxx = min(x + 1, num_cols - 1)
-    miny = max(y - 1, 0)
-    maxy = min(y + 1, num_rows - 1)
-
-    return [(xd, yd) for xd, yd in itertools.product(range(minx,
-                                                           maxx + 1),
-                                                     range(miny,
-                                                           maxy + 1))]
-
-
-def get_ship_cells(ship_length: int, start_c: int, start_r: int,
-                   direction: bool) -> Sequence[Tuple[int, int]]:
-    """Returns a list of the cells the current ship would occupy"""
-    if direction:
-        return [(start_c, start_r + d) for d in range(ship_length)]
-    else:
-        return [(start_c + d, start_r) for d in range(ship_length)]
-
-
-def get_ship_neighbour_cells(num_cols: int, num_rows: int,
-                             ship_length: int, start_c: int, start_r: int,
-                             direction: bool) -> Sequence[Tuple[int, int]]:
-    """Returns a list of the cells neighbouring the ship, including the ship."""
-    min_c = max(start_c - 1, 0)
-    min_r = max(start_r - 1, 0)
-    max_c = min(start_c + 1, num_cols - 1)
-    max_r = min(start_r + 1, num_rows - 1)
-
-    if direction:
-        # ship is row-aligned, so the covered columns may increase
-        max_c = min(num_cols - 1, start_c + ship_length)
-    else:
-        # ship is col-aligned, so the covered rows may increase
-        max_r = min(num_rows - 1, start_r + ship_length)
-
-    return [(c, r) for c, r in itertools.product(range(min_c, max_c + 1),
-                                                 range(min_r, max_r + 1))]
-
-
 class CellGrid:
     """
     CellGrid represents the state of all cells in a grid as a CellState.
@@ -232,11 +188,12 @@ class Puzzle:
 
             for ship_length, solution_ship in zip(ship_lengths, solution_ships):
                 start_c, start_r, direction = solution_ship
-                neighbour_cells = get_ship_neighbour_cells(num_cols, num_rows,
-                                                           ship_length,
-                                                           start_c, start_r,
-                                                           direction)
-                for c, r in neighbour_cells:
+                # FIXME Problem here: cannot use self yet
+                ship_all_cells = self.get_ship_all_cells(ship_length,
+                                                         start_c,
+                                                         start_r,
+                                                         direction)
+                for c, r in ship_all_cells:
                     if solution_grid.get(c, r).is_occupied():
                         raise ValueError(
                             "solutions_ships invalid: cell at {}, {}".format(
@@ -245,7 +202,7 @@ class Puzzle:
                 if ship_length == 1:
                     solution_grid.set(start_c, start_r, CellState.OccupiedWhole)
                 elif direction:
-                    # ship is row-aligned
+                    # ship is row-aligned, so the covered columns may increase
                     end_c = start_c + ship_length - 1
                     solution_grid.set(start_c, start_r,
                                       CellState.OccupiedEndLeft)
@@ -406,7 +363,8 @@ class Puzzle:
 
         for c in range(self._num_cols):
             for r in range(self._num_rows):
-                if self._curr_grid.get(c, r).is_unknown():
+                if self._curr_grid.get(c, r).is_unknown() or \
+                        self._curr_grid.get(c, r) == CellState.OccupiedUnknown:
                     return False
         return True
 
@@ -418,8 +376,12 @@ class Puzzle:
         :param r: Cell row number
         :param state: Cell state
         """
-        if self._known_grid.get(c, r) != CellState.Unknown:
+        if self._known_grid.get(c, r) == CellState.OccupiedUnknown:
+            if not state.is_occupied():
+                raise ValueError("cannot set a known-to-be-occupied cell")
+        elif self._known_grid.get(c, r) != CellState.Unknown:
             raise ValueError("cell is known")
+
         # TODO should the input be a more basic water|occupied|unknown? Then
         #  the actual state is set based on surroundings
         self._curr_grid.set(c, r, state)
@@ -466,6 +428,148 @@ class Puzzle:
         return sum(
             [(1 if self._curr_grid.get(c, r).is_water() else 0) for r in
              range(self._num_rows)])
+
+    def get_neighbour_cells(self, c: int, r: int) -> Sequence[Tuple[int, int]]:
+        """Returns the (up to) 9 cells around and including the given cell as
+        tuples of (c, r)"""
+        minc = max(c - 1, 0)
+        maxc = min(c + 1, self._num_cols - 1)
+        minr = max(r - 1, 0)
+        maxr = min(r + 1, self._num_rows - 1)
+
+        return [(cd, rd) for cd, rd in itertools.product(
+            range(minc, maxc + 1), range(minr, maxr + 1))]
+
+    def get_nondiagonal_neighbour_cells(self, c: int, r: int) \
+            -> Sequence[Tuple[int, int]]:
+        """Returns the (up to) directly-adjacent 4 cells around the cell as
+        tuples of (c, r)"""
+        return [(c, r) for c, r
+                in [(c + 1, r), (c - 1, r), (c, r + 1), (c, r - 1)]
+                if 0 <= c < self._num_cols and 0 <= r < self._num_rows]
+
+    def get_diagonal_neighbour_cells(self, c: int, r: int) \
+            -> Sequence[Tuple[int, int]]:
+        """Returns the (up to) diagonally-adjacents 4 cells around the cell as
+        tuples of (c, r)"""
+        return [(c, r) for c, r
+                in itertools.product([c - 1, c + 1], [r - 1, r + 1])
+                if 0 <= c < self._num_cols and 0 <= r < self._num_rows]
+
+    def get_ship_cells(self, ship_length: int, start_c: int, start_r: int,
+                       direction: bool) -> Sequence[Tuple[int, int]]:
+        """Returns a list of the cells the current ship would occupy"""
+        if direction:
+            # ship is row-aligned, so the covered columns may increase
+            if start_c + ship_length > self._num_cols:
+                raise ValueError("Ship does not fit in grid")
+            return [(start_c + d, start_r) for d in range(ship_length)]
+        else:
+            if start_r + ship_length > self._num_rows:
+                raise ValueError("Ship does not fit in grid")
+            return [(start_c, start_r + d) for d in range(ship_length)]
+
+    def get_ship_neighbour_cells(self,
+                                 ship_length: int, start_c: int, start_r: int,
+                                 direction: bool) -> Sequence[Tuple[int, int]]:
+        """Returns a list of the cells neighbouring the ship, excluding the
+        ship."""
+        min_c = max(start_c - 1, 0)
+        min_r = max(start_r - 1, 0)
+        max_c = min(start_c + 1, self._num_cols - 1)
+        max_r = min(start_r + 1, self._num_rows - 1)
+
+        if direction:
+            # ship is row-aligned, so the covered columns may increase
+            max_c = min(self._num_cols - 1, start_c + ship_length)
+        else:
+            # ship is col-aligned, so the covered rows may increase
+            max_r = min(self._num_rows - 1, start_r + ship_length)
+
+        if direction:
+            # ship is row-aligned, so the covered columns may increase
+            if start_r > 0:
+                for c in range(min_c, max_c + 1):
+                    yield c, start_r - 1
+            if start_r + 1 < self._num_rows:
+                for c in range(min_c, max_c + 1):
+                    yield c, start_r + 1
+            if start_c > 0:
+                yield start_c - 1, start_r
+            if start_c + ship_length < self._num_cols:
+                yield start_c + ship_length, start_r
+        else:
+            # ship is column-aligned, so the covered rows may increase
+            if start_c > 0:
+                for r in range(min_r, max_r + 1):
+                    yield start_c - 1, r
+            if start_c + 1 < self._num_cols:
+                for r in range(min_r, max_r + 1):
+                    yield start_c + 1, r
+            if start_r > 0:
+                yield start_c, start_r - 1
+            if start_r + ship_length < self._num_rows:
+                yield start_c, start_r + ship_length
+
+    def get_ship_all_cells(self,
+                           ship_length: int, start_c: int, start_r: int,
+                           direction: bool) -> Sequence[Tuple[int, int]]:
+        """Returns a list of the cells neighbouring the ship, including the
+        ship."""
+        min_c = max(start_c - 1, 0)
+        min_r = max(start_r - 1, 0)
+        max_c = min(start_c + 1, self._num_cols - 1)
+        max_r = min(start_r + 1, self._num_rows - 1)
+
+        if direction:
+            # ship is row-aligned, so the covered columns may increase
+            max_c = min(self._num_cols - 1, start_c + ship_length)
+        else:
+            # ship is col-aligned, so the covered rows may increase
+            max_r = min(self._num_rows - 1, start_r + ship_length)
+
+        return [(c, r) for c, r in itertools.product(range(min_c, max_c + 1),
+                                                     range(min_r, max_r + 1))]
+
+    def strip_out_of_bound_cells(self, cells: Iterable[Tuple[int, int]]) -> \
+            Iterable[Tuple[int, int]]:
+        for c, r in cells:
+            if 0 <= c < self._num_cols and 0 <= r < self._num_rows:
+                yield c, r
+
+    def can_place_ship(self, ship_length: int, start_c: int, start_r: int,
+                       direction: bool) -> bool:
+        """Checks if ship could fit in specified location"""
+        if 0 > start_r or start_r >= self.get_num_rows():
+            return False
+        if 0 > start_c or start_c >= self.get_num_cols():
+            return False
+        if direction:
+            # ship is row-aligned, so the covered columns may increase
+            if start_c + ship_length > self.get_num_cols():
+                return False
+            if self.get_row_sum(start_r) < ship_length:
+                return False
+        else:
+            # ship is col-aligned
+            if start_r + ship_length > self.get_num_rows():
+                return False
+            if self.get_col_sum(start_c) < ship_length:
+                return False
+
+        if any(self.get_cell(c, r).is_water() for c, r in self.get_ship_cells(
+                ship_length, start_c, start_r, direction)):
+            return False
+
+        neighbour_cells = list(
+            self.get_ship_neighbour_cells(ship_length, start_c,
+                                          start_r,
+                                          direction))
+
+        if any(self.get_cell(c, r).is_occupied() for c, r in neighbour_cells):
+            return False
+
+        return True
 
 
 def generate_solved_puzzles(num_cols: int, num_rows: int,
@@ -529,7 +633,7 @@ def generate_solved_puzzles(num_cols: int, num_rows: int,
         if x >= num_cols or y >= num_rows or x < 0 or y < 0:
             return False
 
-        cell_list = get_neighbour_cells(x, y, num_cols, num_rows)
+        cell_list = self.get_neighbour_cells(x, y)
         return all([cell not in occupied_cells for cell in cell_list])
 
     def can_place_ship(cells):
