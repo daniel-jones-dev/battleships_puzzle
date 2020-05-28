@@ -182,13 +182,20 @@ class Puzzle:
             if any(row_sum < 0 for row_sum in row_sums):
                 raise ValueError("row_sums values must be non negative")
 
+        # Standard function arguments validated, set self
+        # Note: col_sums, row_sums, solution_ships and solution_grid still need to be checked
+        self._num_cols = num_cols
+        self._num_rows = num_rows
+        self._ship_lengths = ship_lengths
+        self._known_grid = known_grid
+        self._curr_grid = curr_grid
+
         # Create solution_grid if ships are given
         if solution_ships is not None:
             solution_grid = CellGrid(num_cols, num_rows)
 
             for ship_length, solution_ship in zip(ship_lengths, solution_ships):
                 start_c, start_r, direction = solution_ship
-                # FIXME Problem here: cannot use self yet
                 ship_all_cells = self.get_ship_all_cells(ship_length,
                                                          start_c,
                                                          start_r,
@@ -244,17 +251,10 @@ class Puzzle:
                             raise ValueError(
                                 "known_grid does not match solution_grid")
 
-        # Function arguments validated, set self
-
-        self._num_cols = num_cols
-        self._num_rows = num_rows
-        self._ship_lengths = ship_lengths
-        self._col_sums = col_sums
-        self._row_sums = row_sums
-        self._known_grid = known_grid
-        self._curr_grid = curr_grid
         self._solution_ships = solution_ships
         self._solution_grid = solution_grid
+        self._col_sums = col_sums
+        self._row_sums = row_sums
 
     def get_num_cols(self) -> int:
         return self._num_cols

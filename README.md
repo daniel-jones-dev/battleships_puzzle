@@ -1,8 +1,8 @@
 # Battleships Puzzle #
 
 This project started out of interest in the Battleships puzzle. The puzzle is a
-variant of the two-player game, but instead intended for one-player, and
-involving more logic than chance. 
+variant of the two-player game, but instead intended for one-player, and is a puzzle
+like Sudoku, rather than a game involving chance. 
 
 General interests/directions of this project are:
 - do some puzzles have multiple solutions?
