@@ -39,12 +39,12 @@ class Solver:
 
         # ship_length_modes is a sorted list of the different ship lengths
         self.ship_length_modes = list(
-            set(self.puzzle.get_ship_lengths()))
+            set(self.puzzle.ship_lengths))
         self.ship_length_modes.sort()
 
         # ship_length_dict is a dictionary of each ship length to the ship count
         self.ship_lengths_dict = {}
-        for ship_length in self.puzzle.get_ship_lengths():
+        for ship_length in self.puzzle.ship_lengths:
             if ship_length not in self.ship_lengths_dict:
                 self.ship_lengths_dict[ship_length] = 0
             self.ship_lengths_dict[ship_length] += 1
@@ -115,8 +115,8 @@ class Solver:
                 all unknown cells are water.
                 """)
 
-        for c in range(self.puzzle.get_num_cols()):
-            unknown_cells = [r for r in range(self.puzzle.get_num_rows())
+        for c in range(self.puzzle.num_cols):
+            unknown_cells = [r for r in range(self.puzzle.num_rows())
                              if self.puzzle.get_cell(c, r).is_unknown()]
             if len(unknown_cells) > 0:
                 occupied_total = self.puzzle.get_col_occupied_sum(c)
@@ -125,8 +125,8 @@ class Solver:
                                            [(c, r, puzzle.CellState.Water)
                                             for r in unknown_cells])
 
-        for r in range(self.puzzle.get_num_rows()):
-            unknown_cells = [c for c in range(self.puzzle.get_num_cols())
+        for r in range(self.puzzle.num_rows()):
+            unknown_cells = [c for c in range(self.puzzle.num_cols)
                              if self.puzzle.get_cell(c, r).is_unknown()]
             if len(unknown_cells) > 0:
                 occupied_total = self.puzzle.get_row_occupied_sum(r)
@@ -154,8 +154,8 @@ class Solver:
                 the total occupied of {}. Therefore all unknown cells are occupied.
                 """)
 
-        for c in range(self.puzzle.get_num_cols()):
-            unknown_cells = [r for r in range(self.puzzle.get_num_rows())
+        for c in range(self.puzzle.num_cols):
+            unknown_cells = [r for r in range(self.puzzle.num_rows())
                              if self.puzzle.get_cell(c, r).is_unknown()]
             unknown_total = len(unknown_cells)
             if unknown_total > 0:
@@ -170,8 +170,8 @@ class Solver:
                                             for r in
                                             unknown_cells])
 
-        for r in range(self.puzzle.get_num_rows()):
-            unknown_cells = [c for c in range(self.puzzle.get_num_cols())
+        for r in range(self.puzzle.num_rows()):
+            unknown_cells = [c for c in range(self.puzzle.num_cols)
                              if self.puzzle.get_cell(c, r).is_unknown()]
             unknown_total = len(unknown_cells)
             if unknown_total > 0:
@@ -197,8 +197,8 @@ class Solver:
                 diagonal cells are water.
                 """)
 
-        for c in range(self.puzzle.get_num_cols()):
-            for r in range(self.puzzle.get_num_rows()):
+        for c in range(self.puzzle.num_cols):
+            for r in range(self.puzzle.num_rows()):
                 if self.puzzle.get_cell(c, r).is_occupied():
                     neighbour_cells = \
                         self.puzzle.get_diagonal_neighbour_cells(c, r)
@@ -222,8 +222,8 @@ class Solver:
         text = textwrap.dedent("""\
                         Occupied cell at {},{} must be a specific ship part.
                         """)
-        for c in range(self.puzzle.get_num_cols()):
-            for r in range(self.puzzle.get_num_rows()):
+        for c in range(self.puzzle.num_cols):
+            for r in range(self.puzzle.num_rows()):
                 if self.puzzle.get_cell(c, r) == \
                         puzzle.CellState.OccupiedUnknown:
 
@@ -257,12 +257,12 @@ class Solver:
                             return PuzzleSolveStep(
                                 text.format(c, r),
                                 [(c, r, puzzle.CellState.OccupiedEndDown)])
-                        elif c + 1 < self.puzzle.get_num_cols() and \
+                        elif c + 1 < self.puzzle.num_cols and \
                                 self.puzzle.get_cell(c + 1, r).is_occupied():
                             return PuzzleSolveStep(
                                 text.format(c, r),
                                 [(c, r, puzzle.CellState.OccupiedEndLeft)])
-                        elif r + 1 < self.puzzle.get_num_rows() and \
+                        elif r + 1 < self.puzzle.num_rows() and \
                                 self.puzzle.get_cell(c, r + 1).is_occupied():
                             return PuzzleSolveStep(
                                 text.format(c, r),
@@ -280,8 +280,8 @@ class Solver:
                     Ships cannot lie next to a 1-length ship in cell {},{}, so all 
                     adjacent cells are water.
                     """)
-        for c in range(self.puzzle.get_num_cols()):
-            for r in range(self.puzzle.get_num_rows()):
+        for c in range(self.puzzle.num_cols):
+            for r in range(self.puzzle.num_rows()):
                 if self.puzzle.get_cell(c, r).is_whole():
                     neighbour_cells = self.puzzle.get_neighbour_cells(c, r)
                     unknown_cells = [(cn, rn) for cn, rn in neighbour_cells if
@@ -306,8 +306,8 @@ class Solver:
                     Cell {},{} has a ship-end, so the next cell is occupied and 
                     other cells are water.""")
 
-        for end_c in range(self.puzzle.get_num_cols()):
-            for end_r in range(self.puzzle.get_num_rows()):
+        for end_c in range(self.puzzle.num_cols):
+            for end_r in range(self.puzzle.num_rows()):
                 state = self.puzzle.get_cell(end_c, end_r)
                 if state.is_end():
                     if state == puzzle.CellState.OccupiedEndDown:
@@ -346,8 +346,8 @@ class Solver:
                                                  puzzle.CellState.Water))
 
                     exp_occ_c, exp_occ_r = expected_occupied_cell
-                    if 0 <= exp_occ_c < self.puzzle.get_num_cols() \
-                            and 0 <= exp_occ_r < self.puzzle.get_num_rows():
+                    if 0 <= exp_occ_c < self.puzzle.num_cols \
+                            and 0 <= exp_occ_r < self.puzzle.num_rows():
                         actual_state = self.puzzle.get_cell(exp_occ_c,
                                                             exp_occ_r)
                         if actual_state.is_unknown():
@@ -369,8 +369,8 @@ class Solver:
         # Go through each ship length
         for length in self.ship_length_modes:
             self.ship_possibles[length] = []
-            for c in range(self.puzzle.get_num_cols()):
-                for r in range(self.puzzle.get_num_rows()):
+            for c in range(self.puzzle.num_cols):
+                for r in range(self.puzzle.num_rows()):
                     for direction in [True, False]:
                         if self.puzzle.can_place_ship(length, c, r, direction):
                             self.ship_possibles[length].append(

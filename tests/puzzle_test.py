@@ -166,10 +166,10 @@ class PuzzleTestCase(unittest.TestCase):
         # 2 0 1
         puzzle = Puzzle(3, 2, ship_lengths=[1, 2], col_sums=[2, 0, 1],
                         row_sums=[2, 1])
-        self.assertEqual(puzzle.get_num_cols(), 3)
-        self.assertEqual(puzzle.get_num_rows(), 2)
-        self.assertEqual(puzzle.get_ship_lengths(), [1, 2])
-        self.assertEqual(puzzle.get_col_sums(), [2, 0, 1])
+        self.assertEqual(puzzle.num_cols, 3)
+        self.assertEqual(puzzle.num_rows, 2)
+        self.assertEqual(puzzle.ship_lengths, [1, 2])
+        self.assertEqual(puzzle.col_sums, [2, 0, 1])
         self.assertFalse(puzzle.has_solution())
         self.assertFalse(puzzle.is_solved())
         self.assertFalse(puzzle.is_incorrect())
@@ -185,10 +185,10 @@ class PuzzleTestCase(unittest.TestCase):
         # 2 0 1
         puzzle = Puzzle(3, 2, ship_lengths=[1, 2],
                         solution_ships=[(2, 0, True), (0, 0, False)])
-        self.assertEqual(puzzle.get_num_cols(), 3)
-        self.assertEqual(puzzle.get_num_rows(), 2)
-        self.assertEqual(puzzle.get_ship_lengths(), [1, 2])
-        self.assertEqual(puzzle.get_col_sums(), [2, 0, 1])
+        self.assertEqual(puzzle.num_cols, 3)
+        self.assertEqual(puzzle.num_rows, 2)
+        self.assertEqual(puzzle.ship_lengths, [1, 2])
+        self.assertEqual(puzzle.col_sums, [2, 0, 1])
         self.assertTrue(puzzle.has_solution())
         self.assertFalse(puzzle.is_solved())
         self.assertFalse(puzzle.is_incorrect())

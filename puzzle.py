@@ -256,20 +256,24 @@ class Puzzle:
         self._col_sums = col_sums
         self._row_sums = row_sums
 
-    def get_num_cols(self) -> int:
+    @property
+    def num_cols(self) -> int:
         return self._num_cols
 
-    def get_num_rows(self) -> int:
+    @property
+    def num_rows(self) -> int:
         return self._num_rows
 
-    def get_ship_lengths(self) -> Sequence[int]:
+    @property
+    def ship_lengths(self) -> Sequence[int]:
         return self._ship_lengths
 
     def get_col_sum(self, c: int) -> int:
         """Returns the current number of cells occupied in given column"""
         return self._col_sums[c]
 
-    def get_col_sums(self) -> Sequence[int]:
+    @property
+    def col_sums(self) -> Sequence[int]:
         """Returns the current number of cells occupied in each column"""
         return self._col_sums
 
@@ -277,7 +281,8 @@ class Puzzle:
         """Returns the current number of cells occupied in each row"""
         return self._row_sums[r]
 
-    def get_row_sums(self) -> Sequence[int]:
+    @property
+    def row_sums(self) -> Sequence[int]:
         """Returns the current number of cells occupied in each row"""
         return self._row_sums
 
@@ -540,19 +545,19 @@ class Puzzle:
     def can_place_ship(self, ship_length: int, start_c: int, start_r: int,
                        direction: bool) -> bool:
         """Checks if ship could fit in specified location"""
-        if 0 > start_r or start_r >= self.get_num_rows():
+        if 0 > start_r or start_r >= self.num_rows():
             return False
-        if 0 > start_c or start_c >= self.get_num_cols():
+        if 0 > start_c or start_c >= self.num_cols:
             return False
         if direction:
             # ship is row-aligned, so the covered columns may increase
-            if start_c + ship_length > self.get_num_cols():
+            if start_c + ship_length > self.num_cols:
                 return False
             if self.get_row_sum(start_r) < ship_length:
                 return False
         else:
             # ship is col-aligned
-            if start_r + ship_length > self.get_num_rows():
+            if start_r + ship_length > self.num_rows():
                 return False
             if self.get_col_sum(start_c) < ship_length:
                 return False
